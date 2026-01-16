@@ -1,0 +1,24 @@
+{
+  "name": "Binary Expected-Value Tool (B.E.T.)",
+  "short_name": "B.E.T. Dashboard",
+  "description": "Track and analyze betting strategies with probability and expected value calculations",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#77CE93",
+  "theme_color": "#55c278",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
