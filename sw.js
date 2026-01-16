@@ -1,7 +1,7 @@
 const CACHE_NAME = 'bet-dashboard-v1';
 const urlsToCache = [
-  '/',
-  '/index.html',
+  './',
+  './index.html',
   'https://fonts.googleapis.com/css?family=Saira+Extra+Condensed:500,700',
   'https://fonts.googleapis.com/css?family=Muli:400,400i,800,800i',
   'https://cdn.jsdelivr.net/npm/chart.js'
