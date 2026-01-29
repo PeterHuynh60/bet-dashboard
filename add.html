@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quick Add | B.E.T.</title>
+    <link rel="icon" type="image/png" href="icon-192.png">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1a1a">
+    
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    
+    <!-- Google Fonts - Clean, modern sans-serif -->
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-dark: #0a0a0a;
+            --bg-card: #1a1a1a;
+            --bg-input: #252525;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a0a0;
+            --accent-green: #00ff88;
+            --accent-red: #ff4444;
+            --accent-blue: #4488ff;
+            --border: #333333;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-dark);
+            color: var(--text-primary);
+            line-height: 1.6;
+            -webkit-font-smoothing: antialiased;
+            padding-bottom: 2rem;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 1rem;
+        }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+        }
+        
+        .header h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+        
+        .header .subtitle {
+            color: var(--accent-green);
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .user-name {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .btn-signout {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .btn-signout:active {
+            background: var(--bg-input);
+        }
+        
+        /* Tab Navigation */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 2rem;
+            background: var(--bg-card);
+            padding: 0.5rem;
+            border-radius: 12px;
+        }
+        
+        .tab {
+            flex: 1;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            padding: 0.75rem 1rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .tab.active {
+            background: var(--accent-green);
+            color: var(--bg-dark);
+        }
+        
+        /* Card Container */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .card-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        /* OCR Upload */
+        .ocr-upload {
+            text-align: center;
+            padding: 2rem 1rem;
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+        }
+        
+        .ocr-upload:active {
+            border-color: var(--accent-green);
+            background: rgba(0, 255, 136, 0.05);
+        }
+        
+        .ocr-upload .icon {
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .ocr-upload .text {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .ocr-status {
+            padding: 0.75rem;
+            border-radius: 8px;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .ocr-status.success {
+            background: rgba(0, 255, 136, 0.1);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
+        
+        .ocr-status.error {
+            background: rgba(255, 68, 68, 0.1);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+        }
+        
+        /* Form */
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-secondary);
+        }
+        
+        .form-input,
+        .form-select {
+            width: 100%;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            padding: 0.875rem;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        
+        .form-input:focus,
+        .form-select:focus {
+            outline: none;
+            border-color: var(--accent-green);
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.75rem;
+        }
+        
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+        
+        .btn-primary {
+            background: var(--accent-green);
+            color: var(--bg-dark);
+        }
+        
+        .btn-primary:active {
+            transform: scale(0.98);
+            opacity: 0.9;
+        }
+        
+        .btn-secondary {
+            background: var(--bg-input);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:active {
+            background: var(--bg-card);
+        }
+        
+        /* Recent Items */
+        .recent-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        
+        .recent-item {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+        }
+        
+        .recent-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 0.5rem;
+        }
+        
+        .recent-item-title {
+            font-size: 0.9rem;
+            font-weight: 600;
+            line-height: 1.3;
+        }
+        
+        .recent-item-badge {
+            padding: 0.25rem 0.5rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        
+        .badge-won {
+            background: rgba(0, 255, 136, 0.15);
+            color: var(--accent-green);
+        }
+        
+        .badge-lost {
+            background: rgba(255, 68, 68, 0.15);
+            color: var(--accent-red);
+        }
+        
+        .badge-pending {
+            background: rgba(68, 136, 255, 0.15);
+            color: var(--accent-blue);
+        }
+        
+        .recent-item-details {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .recent-item-detail {
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        /* Loading Spinner */
+        .spinner {
+            display: inline-block;
+            width: 1rem;
+            height: 1rem;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent-green);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Hide sections */
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Sign in prompt */
+        .signin-prompt {
+            text-align: center;
+            padding: 3rem 1rem;
+        }
+        
+        .signin-prompt h2 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+        }
+        
+        .signin-prompt p {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+        
+        .btn-signin {
+            background: var(--accent-green);
+            color: var(--bg-dark);
+            border: none;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-block;
+        }
+        
+        /* Link to dashboard */
+        .dashboard-link {
+            text-align: center;
+            margin: 2rem 0;
+        }
+        
+        .dashboard-link a {
+            color: var(--accent-green);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Sign In Prompt -->
+        <div id="signin-prompt" class="signin-prompt hidden">
+            <h2>Quick Add</h2>
+            <p>Sign in to add bets and transactions</p>
+            <button class="btn-signin" id="signin-btn">Sign In with Google</button>
+        </div>
+        
+        <!-- Main App (hidden until signed in) -->
+        <div id="main-app" class="hidden">
+            <!-- Header -->
+            <div class="header">
+                <div>
+                    <h1>Quick Add</h1>
+                    <div class="subtitle">B.E.T. Dashboard</div>
+                </div>
+                <div class="user-info">
+                    <span class="user-name" id="user-name"></span>
+                    <button class="btn-signout" id="signout-btn">Sign Out</button>
+                </div>
+            </div>
+            
+            <!-- Tab Navigation -->
+            <div class="tabs">
+                <button class="tab active" data-tab="bet">🎲 Add Bet</button>
+                <button class="tab" data-tab="transaction">💰 Transaction</button>
+            </div>
+            
+            <!-- Bet Section -->
+            <div id="bet-section" class="tab-content">
+                <!-- OCR Upload Card -->
+                <div class="card">
+                    <div class="card-title">📸 Screenshot Upload</div>
+                    <label for="screenshot-input" class="ocr-upload">
+                        <div class="icon">📷</div>
+                        <div class="text">Tap to upload bet screenshot</div>
+                        <input type="file" id="screenshot-input" accept="image/*" capture="environment" style="display: none;">
+                    </label>
+                    <div class="ocr-status" id="ocr-status"></div>
+                </div>
+                
+                <!-- Bet Form Card -->
+                <div class="card">
+                    <div class="card-title">Bet Details</div>
+                    <form id="bet-form">
+                        <div class="form-group">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-input" id="bet-date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Sportsbook</label>
+                            <select class="form-select" id="bet-sportsbook" required>
+                                <option value="">Select...</option>
+                                <option value="DraftKings">DraftKings</option>
+                                <option value="FanDuel">FanDuel</option>
+                                <option value="BetMGM">BetMGM</option>
+                                <option value="Caesars">Caesars</option>
+                                <option value="BetRivers">BetRivers</option>
+                                <option value="Hard Rock">Hard Rock</option>
+                                <option value="Bet365">Bet365</option>
+                                <option value="Fanatics">Fanatics</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Sport/Event</label>
+                            <input type="text" class="form-input" id="bet-sport" placeholder="e.g., NBA: Lakers ML" required>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Wager ($)</label>
+                                <input type="number" step="0.01" class="form-input" id="bet-wager" placeholder="100.00" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Odds</label>
+                                <input type="text" class="form-input" id="bet-odds" placeholder="-110" required>
+                            </div>
+                        </div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Payout ($)</label>
+                                <input type="number" step="0.01" class="form-input" id="bet-payout" placeholder="191.00" required>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="form-label">Result</label>
+                                <select class="form-select" id="bet-result" required>
+                                    <option value="Pending">Pending</option>
+                                    <option value="Won">Won</option>
+                                    <option value="Lost">Lost</option>
+                                    <option value="Push">Push</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Add Bet</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Transaction Section -->
+            <div id="transaction-section" class="tab-content hidden">
+                <div class="card">
+                    <div class="card-title">Transaction Details</div>
+                    <form id="transaction-form">
+                        <div class="form-group">
+                            <label class="form-label">Date</label>
+                            <input type="date" class="form-input" id="tx-date" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Type</label>
+                            <select class="form-select" id="tx-type" required>
+                                <option value="">Select...</option>
+                                <option value="Deposit">Deposit</option>
+                                <option value="Withdrawal">Withdrawal</option>
+                                <option value="Bonus">Bonus</option>
+                                <option value="Adjustment">Adjustment</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Sportsbook</label>
+                            <select class="form-select" id="tx-sportsbook" required>
+                                <option value="">Select...</option>
+                                <option value="DraftKings">DraftKings</option>
+                                <option value="FanDuel">FanDuel</option>
+                                <option value="BetMGM">BetMGM</option>
+                                <option value="Caesars">Caesars</option>
+                                <option value="BetRivers">BetRivers</option>
+                                <option value="Hard Rock">Hard Rock</option>
+                                <option value="Bet365">Bet365</option>
+                                <option value="Fanatics">Fanatics</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Amount ($)</label>
+                            <input type="number" step="0.01" class="form-input" id="tx-amount" placeholder="100.00" required>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label class="form-label">Notes (optional)</label>
+                            <input type="text" class="form-input" id="tx-notes" placeholder="e.g., Welcome bonus">
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary">Add Transaction</button>
+                    </form>
+                </div>
+            </div>
+            
+            <!-- Recent Bets -->
+            <div class="card">
+                <div class="card-title">Recent Bets</div>
+                <div class="recent-list" id="recent-bets">
+                    <div style="text-align: center; color: var(--text-secondary); padding: 2rem;">
+                        Loading...
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Link to Dashboard -->
+            <div class="dashboard-link">
+                <a href="index.html">← View Full Dashboard</a>
+            </div>
+        </div>
+    </div>
+    
+    <script>
+        // Firebase Configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyBLj4AYOc39hIaFAPKQrumsifP7bbyJ5To",
+            authDomain: "betting-dashboard-c224e.firebaseapp.com",
+            projectId: "betting-dashboard-c224e",
+            storageBucket: "betting-dashboard-c224e.firebasestorage.app",
+            messagingSenderId: "416492918120",
+            appId: "1:416492918120:web:e52afea521a508a89cf2dd"
+        };
+        
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const auth = firebase.auth();
+        
+        const AUTHORIZED_EMAIL = 'peter@huynh.place';
+        let currentUser = null;
+        let isAdmin = false;
+        
+        // Set today's date
+        document.getElementById('bet-date').value = new Date().toISOString().split('T')[0];
+        document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+        
+        // Auth State
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                isAdmin = user.email === AUTHORIZED_EMAIL;
+                
+                if (!isAdmin) {
+                    alert('Unauthorized. Please sign in with the authorized account.');
+                    auth.signOut();
+                    return;
+                }
+                
+                document.getElementById('user-name').textContent = user.displayName || user.email.split('@')[0];
+                document.getElementById('signin-prompt').classList.add('hidden');
+                document.getElementById('main-app').classList.remove('hidden');
+                
+                loadRecentBets();
+            } else {
+                document.getElementById('signin-prompt').classList.remove('hidden');
+                document.getElementById('main-app').classList.add('hidden');
+            }
+        });
+        
+        // Sign In
+        document.getElementById('signin-btn').addEventListener('click', () => {
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider);
+        });
+        
+        // Sign Out
+        document.getElementById('signout-btn').addEventListener('click', () => {
+            auth.signOut();
+        });
+        
+        // Tab Switching
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                const tabName = tab.dataset.tab;
+                
+                // Update active tab
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                
+                // Show/hide content
+                document.querySelectorAll('.tab-content').forEach(content => {
+                    content.classList.add('hidden');
+                });
+                document.getElementById(`${tabName}-section`).classList.remove('hidden');
+            });
+        });
+        
+        // OCR Upload
+        document.getElementById('screenshot-input').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            
+            showOCRStatus('Processing screenshot...', 'info');
+            
+            try {
+                const base64Image = await fileToBase64(file);
+                const base64Data = base64Image.split(',')[1];
+                
+                const idToken = await currentUser.getIdToken();
+                
+                const response = await fetch('https://us-central1-betting-dashboard-c224e.cloudfunctions.net/extractBetScreenshot', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${idToken}`
+                    },
+                    body: JSON.stringify({
+                        data: { base64Image: base64Data }
+                    })
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to process screenshot');
+                }
+                
+                const result = await response.json();
+                const extractedText = result.result.extractedText;
+                
+                // Parse and populate form
+                const betDetails = parseBetDetails(extractedText);
+                if (betDetails) {
+                    populateBetForm(betDetails);
+                    showOCRStatus('✓ Screenshot processed! Review and submit.', 'success');
+                } else {
+                    showOCRStatus('Could not extract bet details. Please enter manually.', 'error');
+                }
+                
+            } catch (error) {
+                console.error('OCR Error:', error);
+                showOCRStatus('Error processing screenshot: ' + error.message, 'error');
+            }
+        });
+        
+        function showOCRStatus(message, type) {
+            const status = document.getElementById('ocr-status');
+            status.textContent = message;
+            status.className = `ocr-status ${type}`;
+            status.style.display = 'block';
+            
+            if (type === 'success') {
+                setTimeout(() => {
+                    status.style.display = 'none';
+                }, 5000);
+            }
+        }
+        
+        function fileToBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+        }
+        
+        function parseBetDetails(text) {
+            // Use the same parsing logic from the main dashboard
+            const details = {
+                sportsbook: detectSportsbook(text),
+                sport: null,
+                wager: null,
+                odds: null,
+                payout: null,
+                result: 'Pending'
+            };
+            
+            // Wager
+            const wagerMatch = text.match(/wager:\s*\$?(\d+\.?\d*)/i);
+            if (wagerMatch) details.wager = parseFloat(wagerMatch[1]);
+            
+            // Odds
+            const oddsMatch = text.match(/(?:NO|YES)\s+([+-]\d+)/i) || text.match(/([+-]\d{3,})/);
+            if (oddsMatch) details.odds = oddsMatch[1];
+            
+            // Payout
+            const payoutMatch = text.match(/paid:\s*\$?(\d+[,\d]*\.?\d*)/i);
+            if (payoutMatch) details.payout = parseFloat(payoutMatch[1].replace(/,/g, ''));
+            
+            // Sport/Event
+            const sportMatch = text.match(/([A-Z][a-z]+\s+[A-Z][a-z]+\s+to\s+Win\s+and[\s\S]*?)(?=Result:|Wager:|Paid:|NO\s+[+-]|YES\s+[+-]|\n\n\n)/i);
+            if (sportMatch) {
+                details.sport = sportMatch[1].replace(/\n/g, ' ').replace(/\s+/g, ' ').trim().substring(0, 250);
+            }
+            
+            // Result
+            if (/\bWON\b/i.test(text)) {
+                details.result = 'Won';
+            } else if (/Result:\s*No/i.test(text) && !/\bWON\b/i.test(text)) {
+                details.result = 'Lost';
+            }
+            
+            return details.wager || details.odds ? details : null;
+        }
+        
+        function detectSportsbook(text) {
+            const patterns = {
+                'DraftKings': /draftkings|dkng/i,
+                'FanDuel': /fanduel|fd/i,
+                'BetMGM': /betmgm|mgm/i,
+                'Caesars': /caesars|cz/i,
+                'Hard Rock': /hard rock|hrb/i,
+                'BetRivers': /betrivers|rivers/i,
+                'Bet365': /bet365|365/i,
+                'Fanatics': /fanatics/i
+            };
+            
+            for (const [name, pattern] of Object.entries(patterns)) {
+                if (pattern.test(text)) return name;
+            }
+            return '';
+        }
+        
+        function populateBetForm(details) {
+            if (details.sportsbook) document.getElementById('bet-sportsbook').value = details.sportsbook;
+            if (details.sport) document.getElementById('bet-sport').value = details.sport;
+            if (details.wager) document.getElementById('bet-wager').value = details.wager.toFixed(2);
+            if (details.odds) document.getElementById('bet-odds').value = details.odds;
+            if (details.payout) document.getElementById('bet-payout').value = details.payout.toFixed(2);
+            if (details.result) document.getElementById('bet-result').value = details.result;
+        }
+        
+        // Submit Bet Form
+        document.getElementById('bet-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const betData = {
+                date: document.getElementById('bet-date').value,
+                sportsbook: document.getElementById('bet-sportsbook').value,
+                sport: document.getElementById('bet-sport').value,
+                betType: 'Straight',
+                wager: parseFloat(document.getElementById('bet-wager').value),
+                odds: document.getElementById('bet-odds').value,
+                payout: parseFloat(document.getElementById('bet-payout').value),
+                result: document.getElementById('bet-result').value,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            try {
+                await db.collection('bets').add(betData);
+                alert('✓ Bet added successfully!');
+                document.getElementById('bet-form').reset();
+                document.getElementById('bet-date').value = new Date().toISOString().split('T')[0];
+                loadRecentBets();
+            } catch (error) {
+                console.error('Error adding bet:', error);
+                alert('Error adding bet: ' + error.message);
+            }
+        });
+        
+        // Submit Transaction Form
+        document.getElementById('transaction-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const txData = {
+                date: document.getElementById('tx-date').value,
+                type: document.getElementById('tx-type').value,
+                sportsbook: document.getElementById('tx-sportsbook').value,
+                amount: parseFloat(document.getElementById('tx-amount').value),
+                notes: document.getElementById('tx-notes').value,
+                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            try {
+                await db.collection('bankroll').add(txData);
+                alert('✓ Transaction added successfully!');
+                document.getElementById('transaction-form').reset();
+                document.getElementById('tx-date').value = new Date().toISOString().split('T')[0];
+            } catch (error) {
+                console.error('Error adding transaction:', error);
+                alert('Error adding transaction: ' + error.message);
+            }
+        });
+        
+        // Load Recent Bets
+        async function loadRecentBets() {
+            try {
+                const snapshot = await db.collection('bets')
+                    .orderBy('timestamp', 'desc')
+                    .limit(10)
+                    .get();
+                
+                const container = document.getElementById('recent-bets');
+                container.innerHTML = '';
+                
+                if (snapshot.empty) {
+                    container.innerHTML = '<div style="text-align: center; color: var(--text-secondary); padding: 2rem;">No recent bets</div>';
+                    return;
+                }
+                
+                snapshot.forEach(doc => {
+                    const bet = doc.data();
+                    const item = document.createElement('div');
+                    item.className = 'recent-item';
+                    
+                    const badgeClass = bet.result === 'Won' ? 'badge-won' : 
+                                      bet.result === 'Lost' ? 'badge-lost' : 'badge-pending';
+                    
+                    item.innerHTML = `
+                        <div class="recent-item-header">
+                            <div class="recent-item-title">${bet.sport || 'Bet'}</div>
+                            <div class="recent-item-badge ${badgeClass}">${bet.result}</div>
+                        </div>
+                        <div class="recent-item-details">
+                            <span class="recent-item-detail">📍 ${bet.sportsbook}</span>
+                            <span class="recent-item-detail">💵 $${bet.wager}</span>
+                            <span class="recent-item-detail">📊 ${bet.odds}</span>
+                            <span class="recent-item-detail">📅 ${bet.date}</span>
+                        </div>
+                    `;
+                    
+                    container.appendChild(item);
+                });
+                
+            } catch (error) {
+                console.error('Error loading recent bets:', error);
+            }
+        }
+    </script>
+</body>
+</html>
