@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bet-dashboard-v1';
+const CACHE_NAME = 'bet-dashboard-v2';
 const urlsToCache = [
   './',
   './index.html',
