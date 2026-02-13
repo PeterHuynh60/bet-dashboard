@@ -2,7 +2,7 @@
 
 A comprehensive analytics dashboard for tracking and analyzing sports betting strategies across multiple sportsbooks.
 
-## 🎯 Features
+## Features
 
 - **Real-time Performance Tracking**: Monitor total earnings, win rates, and ROI across all betting activities
 - **Multi-Strategy Analysis**: Track performance across matched betting, promotion harvesting, and +EV betting
@@ -12,7 +12,7 @@ A comprehensive analytics dashboard for tracking and analyzing sports betting st
 - **Mobile PWA**: Install as a Progressive Web App on iOS/Android for offline access
 - **Secure Authentication**: Firebase authentication for admin access to data entry
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Frontend**: HTML, CSS, JavaScript
 - **Database**: Firebase Firestore
@@ -21,7 +21,7 @@ A comprehensive analytics dashboard for tracking and analyzing sports betting st
 - **Hosting**: GitHub Pages
 - **PWA**: Service Workers for offline functionality
 
-## 📊 What It Demonstrates
+## What It Demonstrates
 
 - Statistical analysis and probability theory
 - Risk management and financial modeling
@@ -32,11 +32,11 @@ A comprehensive analytics dashboard for tracking and analyzing sports betting st
 - Mobile-first responsive design
 - Progressive Web App implementation
 
-## 🚀 Live Demo
+## Live Demo
 
 Visit the dashboard at: `https://peterhuynh60.github.io/bet-dashboard/`
 
-## 📱 Install as Mobile App
+## Install as Mobile App
 
 ### iOS (iPhone/iPad)
 1. Open the dashboard in Safari
@@ -50,11 +50,11 @@ Visit the dashboard at: `https://peterhuynh60.github.io/bet-dashboard/`
 3. Tap "Add to Home screen"
 4. Tap "Add"
 
-## 🔐 Authentication
+## Authentication
 
 The dashboard is view-only for public visitors. Data entry and editing features require admin authentication through Firebase.
 
-## 📝 Project Background
+## Project Background
 
 This dashboard was built to track sharp betting activities including:
 - **Matched Betting**: Risk-free betting using bookmaker promotions
@@ -67,7 +67,7 @@ The project demonstrates practical application of:
 - Data analysis and visualization
 - Software development best practices
 
-## 🔧 Setup
+## Setup
 
 1. Clone this repository
 2. Configure Firebase:
@@ -77,11 +77,11 @@ The project demonstrates practical application of:
 3. Create PNG icons from `icon.svg` (192x192 and 512x512)
 4. Deploy to GitHub Pages
 
-## 📄 License
+## License
 
 This project is for portfolio demonstration purposes.
 
-## 👤 Author
+## Author
 
 **Peter Huynh**
 - Website: [huynh.place](https://huynh.place)
