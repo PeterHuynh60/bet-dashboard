@@ -482,6 +482,7 @@
                     <div class="stat-item avgwager">
                         <h6>Avg Wager</h6>
                         <h2 id="avg-wager">$0.00</h2>
+                        <p style="font-size: 0.75rem; color: #6c757d; margin-top: 0.25rem; margin-bottom: 0;" id="avg-wager-exclusive">$0.00</p>
                     </div>
                 </div>
                 
@@ -489,6 +490,7 @@
                     <div class="stat-item avgpayout">
                         <h6>Avg Payout</h6>
                         <h2 id="avg-payout">$0.00</h2>
+                        <p style="font-size: 0.75rem; color: #6c757d; margin-top: 0.25rem; margin-bottom: 0;" id="avg-payout-exclusive">$0.00</p>
                     </div>
                 </div>
                 
@@ -496,13 +498,14 @@
                     <div class="stat-item avgprofit">
                         <h6>Avg Profit</h6>
                         <h2 id="avg-profit">$0.00</h2>
+                        <p style="font-size: 0.75rem; color: #6c757d; margin-top: 0.25rem; margin-bottom: 0;" id="avg-profit-exclusive">$0.00</p>
                     </div>
                 </div>
             </div>
         </div>
         
         <!-- Charts -->
-        <!-- Current Balances and Small Profit Chart -->
+        <!-- Current Balances, Cumulative Profit, and Strategy Charts -->
         <div class="row mb-4">
             <div class="col-lg-8 mb-4">
                 <div class="card border-0" id="balance-card">
@@ -531,7 +534,8 @@
             </div>
             
             <div class="col-lg-4 mb-4">
-                <div class="card border-0">
+                <!-- Cumulative Profit Chart -->
+                <div class="card border-0 mb-4" id="profit-card">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-center mb-3">
                             <h5 class="card-title mb-0" style="font-size: 1rem;">Cumulative Profit</h5>
@@ -546,25 +550,12 @@
                         <canvas id="profit-chart"></canvas>
                     </div>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Sportsbook Profit and Strategy Charts -->
-        <div class="row mb-4">
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0">
+                
+                <!-- Profit by Strategy Chart -->
+                <div class="card border-0" id="strategy-card">
                     <div class="card-body">
                         <h5 class="card-title mb-3">Profit by Strategy</h5>
-                        <canvas id="strategy-chart" style="height: 45px;"></canvas>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Profit by Sportsbook</h5>
-                        <canvas id="sportsbook-profit-chart" style="height: 45px;"></canvas>
+                        <canvas id="strategy-chart"></canvas>
                     </div>
                 </div>
             </div>
@@ -1194,18 +1185,12 @@
             }, 0);
             
             const totalBets = completedBets.length;
-            // Calculate win rate (exclude non-parlay promotion harvesting losses)
-            const betsForWinRate = completedBets.filter(bet => {
-                // Exclude if: non-parlay AND promotion harvesting AND lost
-                const isNonParlayPromoLoss = bet.betType === 'Promotion Harvesting' 
-                    && bet.betType !== 'Parlay' 
-                    && bet.result === 'Lost';
-                return !isNonParlayPromoLoss;
-            });
+            // Calculate win rate (exclude ALL promotion harvesting bets)
+            const betsForWinRate = completedBets.filter(bet => bet.betType !== 'Promotion Harvesting');
             const winningBets = betsForWinRate.filter(bet => bet.result === 'Won').length;
             const winRate = betsForWinRate.length > 0 ? ((winningBets / betsForWinRate.length) * 100).toFixed(1) : 0;
             
-            // Calculate averages
+            // Calculate averages (INCLUDING promotions)
             // Exclude bonus bet wagers from avg wager calculation
             const nonBonusBets = completedBets.filter(bet => !bet.bonusBet);
             const totalWager = nonBonusBets.reduce((sum, bet) => sum + bet.wager, 0);
@@ -1218,6 +1203,27 @@
             // Avg profit uses totalEarnings which already accounts for bonus bets
             const avgProfit = totalBets > 0 ? (totalEarnings / totalBets) : 0;
             
+            // Calculate averages EXCLUDING promotions and arbitrage
+            const exclusiveCompletedBets = completedBets.filter(bet => 
+                bet.betType !== 'Promotion Harvesting' && bet.betType !== 'Arbitrage'
+            );
+            const exclusiveNonBonusBets = exclusiveCompletedBets.filter(bet => !bet.bonusBet);
+            
+            const exclusiveTotalWager = exclusiveNonBonusBets.reduce((sum, bet) => sum + bet.wager, 0);
+            const avgWagerExclusive = exclusiveNonBonusBets.length > 0 ? (exclusiveTotalWager / exclusiveNonBonusBets.length) : 0;
+            
+            const exclusiveTotalPayout = exclusiveCompletedBets.reduce((sum, bet) => sum + bet.payout, 0);
+            const avgPayoutExclusive = exclusiveCompletedBets.length > 0 ? (exclusiveTotalPayout / exclusiveCompletedBets.length) : 0;
+            
+            const exclusiveTotalEarnings = exclusiveCompletedBets.reduce((sum, bet) => {
+                if (bet.bonusBet) {
+                    return sum + bet.payout;
+                } else {
+                    return sum + bet.profit;
+                }
+            }, 0);
+            const avgProfitExclusive = exclusiveCompletedBets.length > 0 ? (exclusiveTotalEarnings / exclusiveCompletedBets.length) : 0;
+            
             // Format currency with proper negative sign placement
             const formatCurrency = (amount) => amount >= 0 ? '$' + amount.toFixed(2) : '-$' + Math.abs(amount).toFixed(2);
             
@@ -1227,6 +1233,11 @@
             document.getElementById('avg-wager').textContent = formatCurrency(avgWager);
             document.getElementById('avg-payout').textContent = formatCurrency(avgPayout);
             document.getElementById('avg-profit').textContent = formatCurrency(avgProfit);
+            
+            // Update exclusive averages (smaller font below)
+            document.getElementById('avg-wager-exclusive').textContent = formatCurrency(avgWagerExclusive);
+            document.getElementById('avg-payout-exclusive').textContent = formatCurrency(avgPayoutExclusive);
+            document.getElementById('avg-profit-exclusive').textContent = formatCurrency(avgProfitExclusive);
         }
         
         function updatePendingTable(bets) {
@@ -1331,7 +1342,9 @@
                         borderColor: '#28a745',
                         backgroundColor: 'rgba(40, 167, 69, 0.1)',
                         tension: 0.4,
-                        fill: true
+                        fill: true,
+                        pointRadius: 0,           // Remove points
+                        pointHoverRadius: 0       // Remove hover points
                     }]
                 },
                 options: {
@@ -2055,7 +2068,9 @@
                         borderColor: '#28a745',
                         backgroundColor: 'rgba(40, 167, 69, 0.1)',
                         tension: 0.4,
-                        fill: true
+                        fill: true,
+                        pointRadius: 0,           // Remove points
+                        pointHoverRadius: 0       // Remove hover points
                     }]
                 },
                 options: {
@@ -2082,16 +2097,25 @@
         function matchProfitChartHeight() {
             const balanceCard = document.getElementById('balance-card');
             const profitCanvas = document.getElementById('profit-chart');
+            const strategyCanvas = document.getElementById('strategy-chart');
             
-            if (balanceCard && profitCanvas) {
+            if (balanceCard && profitCanvas && strategyCanvas) {
                 const balanceHeight = balanceCard.offsetHeight;
-                // Match table height more precisely - less subtraction for better match
-                const chartHeight = balanceHeight - 35; // Fine-tuned for exact visual match
-                profitCanvas.style.height = chartHeight + 'px';
                 
-                // Trigger chart redraw if it exists
+                // Split the height between cumulative profit and strategy charts
+                // Account for card padding, title, margins between the two cards
+                const totalAvailableHeight = balanceHeight - 35;
+                const halfHeight = (totalAvailableHeight / 2) - 30; // Subtract margin between cards
+                
+                profitCanvas.style.height = halfHeight + 'px';
+                strategyCanvas.style.height = halfHeight + 'px';
+                
+                // Trigger chart redraw if they exist
                 if (profitChart) {
                     profitChart.resize();
+                }
+                if (strategyChart) {
+                    strategyChart.resize();
                 }
             }
         }
