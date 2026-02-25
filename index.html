@@ -537,8 +537,8 @@
                 <!-- Cumulative Profit Chart -->
                 <div class="card border-0 mb-4" id="profit-card">
                     <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h5 class="card-title mb-0" style="font-size: 1rem;">Cumulative Profit</h5>
+                        <h5 class="card-title mb-2" style="font-size: 1rem; text-align: center;">Cumulative Profit</h5>
+                        <div class="d-flex justify-content-center mb-3">
                             <div class="btn-group btn-group-sm" role="group">
                                 <button type="button" class="btn btn-outline-secondary active" data-timeframe="all" onclick="filterProfitChart('all')" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">All</button>
                                 <button type="button" class="btn btn-outline-secondary" data-timeframe="ytd" onclick="filterProfitChart('ytd')" style="font-size: 0.7rem; padding: 0.2rem 0.4rem;">YTD</button>
@@ -1096,9 +1096,9 @@
         // ============================================
         // DASHBOARD CODE
         // ============================================
-        let profitChart, strategyChart, sportsbookProfitChart;
+        let profitChart, strategyChart;
         let allBets = []; // Store all bets globally for filtering
-        let showAllBetHistory = false; // Track if showing all bet history
+        let betHistoryDisplayCount = 5; // Track how many bets to show (starts at 5)
         let showAllTransactions = false; // Track if showing all transactions
         let showAllPendingBets = false; // Track if showing all pending bets
         let currentTimeframe = 'all'; // Current time filter
@@ -1438,89 +1438,25 @@
                     }
                 }
             });
-            
-            // Sportsbook profit breakdown chart
-            const sportsbookTotals = {};
-            completedBets.forEach(bet => {
-                const sportsbook = bet.sportsbook || 'Unknown';
-                if (!sportsbookTotals[sportsbook]) {
-                    sportsbookTotals[sportsbook] = 0;
-                }
-                if (bet.bonusBet) {
-                    sportsbookTotals[sportsbook] += bet.payout;
-                } else {
-                    sportsbookTotals[sportsbook] += bet.profit;
-                }
-            });
-            
-            const sportsbookProfitCtx = document.getElementById('sportsbook-profit-chart').getContext('2d');
-            
-            if (sportsbookProfitChart) sportsbookProfitChart.destroy();
-            
-            sportsbookProfitChart = new Chart(sportsbookProfitCtx, {
-                type: 'bar',
-                data: {
-                    labels: Object.keys(sportsbookTotals),
-                    datasets: [{
-                        data: Object.values(sportsbookTotals),
-                        backgroundColor: [
-                            '#28a745',
-                            '#007bff',
-                            '#ffc107',
-                            '#dc3545',
-                            '#6f42c1',
-                            '#fd7e14',
-                            '#20c997',
-                            '#e83e8c',
-                            '#17a2b8',
-                            '#6c757d'
-                        ]
-                    }]
-                },
-                options: {
-                    indexAxis: 'y', // This makes it horizontal
-                    responsive: true,
-                    maintainAspectRatio: true,
-                    plugins: {
-                        legend: {
-                            display: false
-                        },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    return `${context.label}: $${context.parsed.x.toFixed(2)}`;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        x: {
-                            display: false, // Hide x-axis
-                            beginAtZero: true,
-                            grid: {
-                                display: false // Hide gridlines
-                            }
-                        },
-                        y: {
-                            grid: {
-                                display: false // Hide gridlines
-                            },
-                            ticks: {
-                                font: {
-                                    size: 11
-                                }
-                            },
-                            categoryPercentage: 1.0,
-                            barPercentage: 1.0
-                        }
-                    }
-                }
-            });
         }
         
         // Toggle bet history between 10 and all
         function toggleBetHistory() {
-            showAllBetHistory = !showAllBetHistory;
+            const completedBets = allBets.filter(bet => bet.result !== 'Pending');
+            
+            // If showing all, reset to 5
+            if (betHistoryDisplayCount >= completedBets.length) {
+                betHistoryDisplayCount = 5;
+            } 
+            // If at 5, show next 10 more (total 15)
+            else {
+                betHistoryDisplayCount += 10;
+                // Don't exceed total
+                if (betHistoryDisplayCount > completedBets.length) {
+                    betHistoryDisplayCount = completedBets.length;
+                }
+            }
+            
             updateTable(allBets);
         }
         
@@ -1548,13 +1484,21 @@
                 return;
             }
             
-            // Show 5 or all based on state
-            const betsToShow = showAllBetHistory ? completedBets : completedBets.slice(0, 5);
+            // Show bets based on display count
+            const betsToShow = completedBets.slice(0, betHistoryDisplayCount);
             
-            // Show/hide see more button
+            // Update button text and visibility
             if (completedBets.length > 5) {
                 seeMoreButton.style.display = 'block';
-                seeMoreButton.querySelector('button').textContent = showAllBetHistory ? 'See less' : 'See more';
+                const button = seeMoreButton.querySelector('button');
+                
+                if (betHistoryDisplayCount >= completedBets.length) {
+                    // Showing all - show "Show less"
+                    button.textContent = 'Show less';
+                } else {
+                    // Not showing all - show "Show more"
+                    button.textContent = 'Show more';
+                }
             } else {
                 seeMoreButton.style.display = 'none';
             }
