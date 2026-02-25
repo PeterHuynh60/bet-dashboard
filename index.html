@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v106 -->
+<!DOCTYPE html><!-- v108 -->
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -469,24 +469,18 @@
             margin-bottom: 1.5rem !important;
         }
     </style>
-    
-    <!-- Cache Buster Script -->
-    <script>
-        // Always ensure fresh load by adding timestamp if missing
-        (function() {
-            const url = new URL(window.location.href);
-            const hasTimestamp = url.searchParams.has('t');
-            
-            // Only reload if there's no timestamp AND it's a clean URL
-            // This prevents infinite reload loop
-            if (!hasTimestamp && url.searchParams.toString() === '') {
-                url.searchParams.set('t', Date.now());
-                window.location.replace(url.toString());
-            }
-        })();
-    </script>
 </head>
 <body>
+<script>
+// IMMEDIATE cache buster - runs before anything else
+(function() {
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('_')) {
+        url.searchParams.set('_', Date.now());
+        window.location.replace(url.toString());
+    }
+})();
+</script>
      <a href="https://huynh.place" class="btn btn-dark back-link">Main</a>
     
     <!-- Authentication UI -->
@@ -2162,19 +2156,28 @@
         // Match profit chart height to balance table
         function matchProfitChartHeight() {
             const balanceCard = document.getElementById('balance-card');
+            const profitCard = document.getElementById('profit-card');
+            const strategyCard = document.getElementById('strategy-card');
             const profitCanvas = document.getElementById('profit-chart');
             const strategyCanvas = document.getElementById('strategy-chart');
             
-            if (balanceCard && profitCanvas && strategyCanvas) {
+            if (balanceCard && profitCanvas && strategyCanvas && profitCard && strategyCard) {
                 const balanceHeight = balanceCard.offsetHeight;
                 
-                // Split the height between cumulative profit and strategy charts
-                // Fine-tune to match the balance table height perfectly
-                const totalAvailableHeight = balanceHeight - 20;
-                const halfHeight = (totalAvailableHeight / 2) - 40; // Adjust for card padding and margins
+                // Get the heights of the card headers/padding
+                const profitCardPadding = profitCard.offsetHeight - profitCanvas.offsetHeight;
+                const strategyCardPadding = strategyCard.offsetHeight - strategyCanvas.offsetHeight;
+                const profitCardMargin = 24; // mb-4 between the two cards
                 
-                profitCanvas.style.height = halfHeight + 'px';
-                strategyCanvas.style.height = halfHeight + 'px';
+                // Calculate total available height for both canvases
+                const totalAvailableHeight = balanceHeight - profitCardPadding - strategyCardPadding - profitCardMargin;
+                
+                // Split roughly 50/50
+                const profitChartHeight = totalAvailableHeight * 0.5;
+                const strategyChartHeight = totalAvailableHeight * 0.5;
+                
+                profitCanvas.style.height = profitChartHeight + 'px';
+                strategyCanvas.style.height = strategyChartHeight + 'px';
                 
                 // Trigger chart redraw if they exist
                 if (profitChart) {
