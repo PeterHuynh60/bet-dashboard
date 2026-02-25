@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v1.1 -->
+<!DOCTYPE html><!-- v1.10 -->
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -584,7 +584,7 @@
         
         <!-- Charts -->
         <!-- Current Balances, Cumulative Profit, and Strategy Charts -->
-        <div class="row mb-4">
+        <div class="row mt-4 mb-4">
             <div class="col-lg-8 mb-4">
                 <div class="card border-0" id="balance-card">
                     <div class="card-body">
@@ -1192,6 +1192,23 @@
             document.getElementById('dashboard-content').style.display = 'none';
             
             try {
+                // Try to load from cache first for instant display
+                const cachedData = localStorage.getItem('dashboard-cache');
+                const cacheTimestamp = localStorage.getItem('dashboard-cache-time');
+                const cacheMaxAge = 5 * 60 * 1000; // 5 minutes
+                
+                // If cache exists and is recent, use it immediately
+                if (cachedData && cacheTimestamp) {
+                    const cacheAge = Date.now() - parseInt(cacheTimestamp);
+                    if (cacheAge < cacheMaxAge) {
+                        console.log('Loading from cache (instant)');
+                        const cachedBets = JSON.parse(cachedData);
+                        displayDashboard(cachedBets);
+                        // Continue loading fresh data in background
+                    }
+                }
+                
+                // Load fresh data from storage
                 const result = await storage.list('bet:');
                 
                 if (!result || !result.keys || result.keys.length === 0) {
@@ -1215,24 +1232,13 @@
                 
                 if (bets.length === 0) return;
                 
-                // Sort by date (newest first)
-                bets.sort((a, b) => new Date(b.date) - new Date(a.date));
+                // Cache the fresh data
+                localStorage.setItem('dashboard-cache', JSON.stringify(bets));
+                localStorage.setItem('dashboard-cache-time', Date.now().toString());
+                console.log('Data cached for next load');
                 
-                // Store globally for filtering
-                allBets = bets;
-                
-                updateStatistics(bets);
-                updateCharts(bets);
-                updatePendingTable(bets);
-                updateTable(bets);
-                loadBankroll();
-                
-                // Match profit chart height to balance table (with slight delay for rendering)
-                setTimeout(matchProfitChartHeight, 100);
-                
-                // Hide skeleton, show real content
-                document.getElementById('loading-skeleton').classList.remove('show');
-                document.getElementById('dashboard-content').style.display = 'block';
+                // Display fresh data
+                displayDashboard(bets);
                 
             } catch (error) {
                 console.error('Error loading dashboard:', error);
@@ -1241,6 +1247,28 @@
                 document.getElementById('dashboard-content').style.display = 'block';
                 alert('Error loading dashboard data');
             }
+        }
+        
+        // Helper function to display dashboard (used by both cache and fresh data)
+        function displayDashboard(bets) {
+            // Sort by date (newest first)
+            bets.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Store globally for filtering
+            allBets = bets;
+            
+            updateStatistics(bets);
+            updateCharts(bets);
+            updatePendingTable(bets);
+            updateTable(bets);
+            loadBankroll();
+            
+            // Match profit chart height to balance table (with slight delay for rendering)
+            setTimeout(matchProfitChartHeight, 100);
+            
+            // Hide skeleton, show real content
+            document.getElementById('loading-skeleton').classList.remove('show');
+            document.getElementById('dashboard-content').style.display = 'block';
         }
         
         function updateStatistics(bets) {
@@ -1665,6 +1693,10 @@
             try {
                 const timestamp = Date.now();
                 await storage.set(`bet:${timestamp}`, JSON.stringify(bet));
+                
+                // Clear cache so fresh data loads
+                localStorage.removeItem('dashboard-cache');
+                localStorage.removeItem('dashboard-cache-time');
                 
                 // Note: No longer auto-creating withdrawal transactions for bets
                 // Users manage their bankroll separately via Add Transaction
