@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v100 -->
+<!DOCTYPE html><!-- v103 -->
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -470,6 +470,27 @@
             margin-bottom: 1.5rem !important;
         }
     </style>
+    
+    <!-- Cache Buster Script -->
+    <script>
+        // Force reload with timestamp if loaded from cache
+        (function() {
+            const currentVersion = 103;
+            const lastVersion = parseInt(sessionStorage.getItem('pageVersion') || '0');
+            
+            // If this is a new version, force reload with timestamp
+            if (lastVersion < currentVersion) {
+                sessionStorage.setItem('pageVersion', currentVersion);
+                
+                // Add timestamp to URL if not already present
+                const url = new URL(window.location.href);
+                if (!url.searchParams.has('t')) {
+                    url.searchParams.set('t', Date.now());
+                    window.location.replace(url.toString());
+                }
+            }
+        })();
+    </script>
 </head>
 <body>
      <a href="https://huynh.place" class="btn btn-dark back-link">Main</a>
@@ -585,7 +606,7 @@
         <!-- Charts -->
         <!-- Current Balances, Cumulative Profit, and Strategy Charts -->
         <div class="row mb-4">
-            <div class="col-lg-8 mb-4">
+            <div class="col-lg-8">
                 <div class="card border-0" id="balance-card">
                     <div class="card-body">
                         <h5 class="card-title mb-3">Current Balances by Sportsbook</h5>
@@ -611,7 +632,7 @@
                 </div>
             </div>
             
-            <div class="col-lg-4 mb-4">
+            <div class="col-lg-4">
                 <!-- Cumulative Profit Chart -->
                 <div class="card border-0 mb-4" id="profit-card">
                     <div class="card-body">
