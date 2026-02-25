@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v105 -->
+<!DOCTYPE html><!-- v106 -->
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -150,7 +150,6 @@
         }
         
         .card {
-            margin-bottom: 1.5rem;
             border: 1px solid #dee2e6;
             border-radius: 8px;
             background-color: white;
@@ -473,21 +472,16 @@
     
     <!-- Cache Buster Script -->
     <script>
-        // Force reload with timestamp if loaded from cache
+        // Always ensure fresh load by adding timestamp if missing
         (function() {
-            const currentVersion = 105;
-            const lastVersion = parseInt(localStorage.getItem('dashboardVersion') || '0');
+            const url = new URL(window.location.href);
+            const hasTimestamp = url.searchParams.has('t');
             
-            // If this is a new version, force reload with timestamp
-            if (lastVersion < currentVersion) {
-                localStorage.setItem('dashboardVersion', currentVersion);
-                
-                // Add timestamp to URL if not already present
-                const url = new URL(window.location.href);
-                if (!url.searchParams.has('t')) {
-                    url.searchParams.set('t', Date.now());
-                    window.location.replace(url.toString());
-                }
+            // Only reload if there's no timestamp AND it's a clean URL
+            // This prevents infinite reload loop
+            if (!hasTimestamp && url.searchParams.toString() === '') {
+                url.searchParams.set('t', Date.now());
+                window.location.replace(url.toString());
             }
         })();
     </script>
