@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v108 -->
+<!DOCTYPE html><!-- v109 -->
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -471,16 +471,6 @@
     </style>
 </head>
 <body>
-<script>
-// IMMEDIATE cache buster - runs before anything else
-(function() {
-    const url = new URL(window.location.href);
-    if (!url.searchParams.has('_')) {
-        url.searchParams.set('_', Date.now());
-        window.location.replace(url.toString());
-    }
-})();
-</script>
      <a href="https://huynh.place" class="btn btn-dark back-link">Main</a>
     
     <!-- Authentication UI -->
