@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html><!-- v1.1 -->
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -31,6 +31,42 @@
     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-functions-compat.js"></script>
     
     <style>
+        /* Loading Skeleton Styles */
+        .skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s ease-in-out infinite;
+            border-radius: 4px;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .skeleton-stat {
+            height: 80px;
+            margin-bottom: 1rem;
+        }
+
+        .skeleton-card {
+            height: 300px;
+            margin-bottom: 1rem;
+        }
+
+        .skeleton-table-row {
+            height: 40px;
+            margin-bottom: 0.5rem;
+        }
+
+        .loading-container {
+            display: none; /* Hidden by default, shown via JS */
+        }
+
+        .loading-container.show {
+            display: block;
+        }
+        
         /* Reset any sidebar offset from main site */
         body {
             margin-left: 0 !important;
@@ -454,7 +490,49 @@
             <p class="mb-0">Track your betting performance and earnings</p>
         </div>
         
+        <!-- Loading Skeleton (shown while data loads) -->
+        <div id="loading-skeleton" class="loading-container">
+            <!-- Skeleton Stats -->
+            <div class="stats-row">
+                <div class="row">
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="skeleton skeleton-stat"></div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="skeleton skeleton-stat"></div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="skeleton skeleton-stat"></div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="skeleton skeleton-stat"></div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="skeleton skeleton-stat"></div>
+                    </div>
+                    <div class="col-lg-2 col-md-4 col-6">
+                        <div class="skeleton skeleton-stat"></div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Skeleton Charts -->
+            <div class="row mb-4">
+                <div class="col-lg-8 mb-4">
+                    <div class="skeleton skeleton-card"></div>
+                </div>
+                <div class="col-lg-4 mb-4">
+                    <div class="skeleton skeleton-card"></div>
+                </div>
+            </div>
+            
+            <!-- Skeleton Tables -->
+            <div class="skeleton skeleton-card mb-4"></div>
+            <div class="skeleton skeleton-card mb-4"></div>
+        </div>
+        
         <!-- Statistics Cards -->
+        <div id="dashboard-content" style="display: none;">
         <div class="stats-row">
             <div class="row">
                 <div class="col-lg-2 col-md-4 col-6">
@@ -594,7 +672,7 @@
         </div>
         
         <!-- Pending Bets Section -->
-        <div class="bet-table">
+        <div class="bet-table mb-4">
             <h4 class="mb-4">Pending Bets</h4>
             <div class="table-responsive">
                 <table class="table table-hover">
@@ -623,34 +701,9 @@
             </div>
         </div>
         
-        <!-- Transaction History Table -->
-        <div class="bet-table">
-            <h4 class="mb-4">Transaction History</h4>
-            <div class="table-responsive">
-                <table class="table table-hover">
-                    <thead>
-                        <tr>
-                            <th>Date</th>
-                            <th>Sportsbook</th>
-                            <th>Type</th>
-                            <th>Amount</th>
-                            <th class="admin-only">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody id="bankroll-transactions">
-                        <tr>
-                            <td colspan="5" class="text-center text-muted">No transactions yet</td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-            <div id="transaction-history-see-more" class="text-center mt-3" style="display: none;">
-                <button class="btn btn-sm btn-outline-secondary" onclick="toggleTransactionHistory()">See more</button>
-            </div>
-        </div>
         
         <!-- Add New Bet Form -->
-        <div class="form-section mb-5" id="add-bet-section" style="display: none;">
+        <div class="form-section mb-4" id="add-bet-section" style="display: none;">
             <h4 class="mb-4">Add New Bet</h4>
             
             <!-- Form -->
@@ -750,51 +803,85 @@
         </div>
         
         
-        <!-- Add New Transaction Form -->
-        <div class="form-section mb-5" id="bankroll-section" style="display: none;">
-            <h4 class="mb-4">Add New Transaction</h4>
+        <!-- Transaction History and Add New Transaction - Side by Side -->
+        <div class="row mb-5">
+            <!-- Transaction History Table -->
+            <div class="col-lg-6 mb-4">
+                <div class="bet-table">
+                    <h4 class="mb-4">Transaction History</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Sportsbook</th>
+                                    <th>Type</th>
+                                    <th>Amount</th>
+                                    <th class="admin-only">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="bankroll-transactions">
+                                <tr>
+                                    <td colspan="5" class="text-center text-muted">No transactions yet</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="transaction-history-see-more" class="text-center mt-3" style="display: none;">
+                        <button class="btn btn-sm btn-outline-secondary" onclick="toggleTransactionHistory()">See more</button>
+                    </div>
+                </div>
+            </div>
             
-            <form id="bankroll-form" class="mb-4">
-                <div class="row">
-                    <div class="col-md-3 mb-3">
-                        <label for="bankroll-date">Date</label>
-                        <input type="date" class="form-control" id="bankroll-date" required>
-                    </div>
+            <!-- Add New Transaction Form -->
+            <div class="col-lg-6 mb-4">
+                <div class="form-section" id="bankroll-section" style="display: none;">
+                    <h4 class="mb-4">Add New Transaction</h4>
                     
-                    <div class="col-md-3 mb-3">
-                        <label for="bankroll-sportsbook">Sportsbook</label>
-                        <select class="form-control" id="bankroll-sportsbook" required onchange="handleSportsbookChange(this)">
-                            <option value="">Select sportsbook...</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-3 mb-3" id="custom-sportsbook-container" style="display: none;">
-                        <label for="custom-sportsbook">New Sportsbook Name</label>
-                        <input type="text" class="form-control" id="custom-sportsbook" placeholder="e.g., DraftKings">
-                    </div>
-                    
-                    <div class="col-md-3 mb-3">
-                        <label for="bankroll-type">Transaction Type</label>
-                        <select class="form-control" id="bankroll-type" required>
-                            <option value="">Select type...</option>
-                            <option value="Deposit">Deposit</option>
-                            <option value="Withdraw">Withdraw</option>
-                        </select>
-                    </div>
-                    
-                    <div class="col-md-3 mb-3">
-                        <label for="bankroll-amount">Amount ($)</label>
-                        <input type="number" step="0.01" class="form-control" id="bankroll-amount" placeholder="100.00" required>
-                    </div>
+                    <form id="bankroll-form" class="mb-4">
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label for="bankroll-date">Date</label>
+                                <input type="date" class="form-control" id="bankroll-date" required>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="bankroll-sportsbook">Sportsbook</label>
+                                <select class="form-control" id="bankroll-sportsbook" required onchange="handleSportsbookChange(this)">
+                                    <option value="">Select sportsbook...</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-12 mb-3" id="custom-sportsbook-container" style="display: none;">
+                                <label for="custom-sportsbook">New Sportsbook Name</label>
+                                <input type="text" class="form-control" id="custom-sportsbook" placeholder="e.g., DraftKings">
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="bankroll-type">Transaction Type</label>
+                                <select class="form-control" id="bankroll-type" required>
+                                    <option value="">Select type...</option>
+                                    <option value="Deposit">Deposit</option>
+                                    <option value="Withdraw">Withdraw</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-md-6 mb-3">
+                                <label for="bankroll-amount">Amount ($)</label>
+                                <input type="number" step="0.01" class="form-control" id="bankroll-amount" placeholder="100.00" required>
+                            </div>
+                        </div>
+                        
+                        <div class="text-center">
+                            <button type="submit" class="btn btn-primary">Add Transaction</button>
+                        </div>
+                    </form>
                 </div>
-                
-                <div class="text-center">
-                    <button type="submit" class="btn btn-primary">Add Transaction</button>
-                </div>
-            </form>
+            </div>
         </div>
     </div>
     </div>
+    </div><!-- End dashboard-content -->
     
     <!-- Edit Bet Modal -->
     <div id="edit-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; overflow-y: auto;">
@@ -1100,6 +1187,10 @@
         
         // Load dashboard data
         async function loadDashboard() {
+            // Show loading skeleton, hide content
+            document.getElementById('loading-skeleton').classList.add('show');
+            document.getElementById('dashboard-content').style.display = 'none';
+            
             try {
                 const result = await storage.list('bet:');
                 
@@ -1139,8 +1230,15 @@
                 // Match profit chart height to balance table (with slight delay for rendering)
                 setTimeout(matchProfitChartHeight, 100);
                 
+                // Hide skeleton, show real content
+                document.getElementById('loading-skeleton').classList.remove('show');
+                document.getElementById('dashboard-content').style.display = 'block';
+                
             } catch (error) {
                 console.error('Error loading dashboard:', error);
+                // Hide skeleton even on error
+                document.getElementById('loading-skeleton').classList.remove('show');
+                document.getElementById('dashboard-content').style.display = 'block';
                 alert('Error loading dashboard data');
             }
         }
@@ -2024,9 +2122,9 @@
                 const balanceHeight = balanceCard.offsetHeight;
                 
                 // Split the height between cumulative profit and strategy charts
-                // Account for card padding, title, margins between the two cards
-                const totalAvailableHeight = balanceHeight - 35;
-                const halfHeight = (totalAvailableHeight / 2) - 30; // Subtract margin between cards
+                // Fine-tune to match the balance table height perfectly
+                const totalAvailableHeight = balanceHeight - 20;
+                const halfHeight = (totalAvailableHeight / 2) - 40; // Adjust for card padding and margins
                 
                 profitCanvas.style.height = halfHeight + 'px';
                 strategyCanvas.style.height = halfHeight + 'px';
