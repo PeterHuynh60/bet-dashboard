@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v103 -->
+<!DOCTYPE html><!-- v105 -->
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -475,12 +475,12 @@
     <script>
         // Force reload with timestamp if loaded from cache
         (function() {
-            const currentVersion = 103;
-            const lastVersion = parseInt(sessionStorage.getItem('pageVersion') || '0');
+            const currentVersion = 105;
+            const lastVersion = parseInt(localStorage.getItem('dashboardVersion') || '0');
             
             // If this is a new version, force reload with timestamp
             if (lastVersion < currentVersion) {
-                sessionStorage.setItem('pageVersion', currentVersion);
+                localStorage.setItem('dashboardVersion', currentVersion);
                 
                 // Add timestamp to URL if not already present
                 const url = new URL(window.location.href);
@@ -661,7 +661,7 @@
         </div>
         
         <!-- Bet History Table -->
-        <div class="bet-table mb-4">
+        <div class="bet-table">
             <h4 class="mb-4">Bet History</h4>
             <div class="table-responsive">
                 <table class="table table-hover">
@@ -693,7 +693,7 @@
         </div>
         
         <!-- Pending Bets Section -->
-        <div class="bet-table mb-4">
+        <div class="bet-table">
             <h4 class="mb-4">Pending Bets</h4>
             <div class="table-responsive">
                 <table class="table table-hover">
@@ -724,7 +724,7 @@
         
         
         <!-- Add New Bet Form -->
-        <div class="form-section mb-4" id="add-bet-section" style="display: none;">
+        <div class="form-section" id="add-bet-section" style="display: none;">
             <h4 class="mb-4">Add New Bet</h4>
             
             <!-- Form -->
