@@ -1,4 +1,4 @@
-<!DOCTYPE html><!-- v109 -->
+<!DOCTYPE html><!-- v113 -->
 <html lang="en">
 <head>
     <meta charset="utf-8" />
@@ -584,7 +584,7 @@
         <!-- Charts -->
         <!-- Current Balances, Cumulative Profit, and Strategy Charts -->
         <div class="row mb-4">
-            <div class="col-lg-8">
+            <div class="col-lg-8 mb-4 mb-lg-0">
                 <div class="card border-0" id="balance-card">
                     <div class="card-body">
                         <h5 class="card-title mb-3">Current Balances by Sportsbook</h5>
@@ -665,8 +665,9 @@
                     </tbody>
                 </table>
             </div>
-            <div id="bet-history-see-more" class="text-center mt-3" style="display: none;">
-                <button class="btn btn-sm btn-outline-secondary" onclick="toggleBetHistory()">See more</button>
+            <div id="bet-history-buttons" class="text-center mt-3" style="display: none;">
+                <button id="show-less-btn" class="btn btn-sm btn-outline-secondary me-2" onclick="showLessBets()" style="display: none;">Show less</button>
+                <button id="show-more-btn" class="btn btn-sm btn-outline-secondary" onclick="showMoreBets()">Show more</button>
             </div>
         </div>
         
@@ -1185,10 +1186,12 @@
         document.getElementById('bankroll-date').value = getLocalDateString();
         
         // Load dashboard data
-        async function loadDashboard() {
-            // Show loading skeleton, hide content
-            document.getElementById('loading-skeleton').classList.add('show');
-            document.getElementById('dashboard-content').style.display = 'none';
+        async function loadDashboard(skipSkeleton = false) {
+            // Show loading skeleton, hide content (unless skipping)
+            if (!skipSkeleton) {
+                document.getElementById('loading-skeleton').classList.add('show');
+                document.getElementById('dashboard-content').style.display = 'none';
+            }
             
             try {
                 // Try to load from cache first for instant display
@@ -1543,20 +1546,25 @@
         }
         
         // Toggle bet history between 10 and all
-        function toggleBetHistory() {
+        function showMoreBets() {
             const completedBets = allBets.filter(bet => bet.result !== 'Pending');
             
-            // If showing all, reset to 5
-            if (betHistoryDisplayCount >= completedBets.length) {
+            betHistoryDisplayCount += 10;
+            
+            // Don't exceed total
+            if (betHistoryDisplayCount > completedBets.length) {
+                betHistoryDisplayCount = completedBets.length;
+            }
+            
+            updateTable(allBets);
+        }
+        
+        function showLessBets() {
+            betHistoryDisplayCount -= 10;
+            
+            // Don't go below 5
+            if (betHistoryDisplayCount < 5) {
                 betHistoryDisplayCount = 5;
-            } 
-            // If at 5, show next 10 more (total 15)
-            else {
-                betHistoryDisplayCount += 10;
-                // Don't exceed total
-                if (betHistoryDisplayCount > completedBets.length) {
-                    betHistoryDisplayCount = completedBets.length;
-                }
             }
             
             updateTable(allBets);
@@ -1578,31 +1586,38 @@
             // Only show completed bets
             const completedBets = bets.filter(bet => bet.result !== 'Pending');
             const tbody = document.getElementById('bet-history');
-            const seeMoreButton = document.getElementById('bet-history-see-more');
+            const buttonsContainer = document.getElementById('bet-history-buttons');
+            const showMoreBtn = document.getElementById('show-more-btn');
+            const showLessBtn = document.getElementById('show-less-btn');
             
             if (completedBets.length === 0) {
                 tbody.innerHTML = '<tr><td colspan="11" class="text-center text-muted">No completed bets yet.</td></tr>';
-                seeMoreButton.style.display = 'none';
+                buttonsContainer.style.display = 'none';
                 return;
             }
             
             // Show bets based on display count
             const betsToShow = completedBets.slice(0, betHistoryDisplayCount);
             
-            // Update button text and visibility
+            // Update button visibility
             if (completedBets.length > 5) {
-                seeMoreButton.style.display = 'block';
-                const button = seeMoreButton.querySelector('button');
+                buttonsContainer.style.display = 'block';
                 
-                if (betHistoryDisplayCount >= completedBets.length) {
-                    // Showing all - show "Show less"
-                    button.textContent = 'Show less';
+                // Show "Show Less" if displaying more than 5
+                if (betHistoryDisplayCount > 5) {
+                    showLessBtn.style.display = 'inline-block';
                 } else {
-                    // Not showing all - show "Show more"
-                    button.textContent = 'Show more';
+                    showLessBtn.style.display = 'none';
+                }
+                
+                // Show "Show More" if not showing all
+                if (betHistoryDisplayCount < completedBets.length) {
+                    showMoreBtn.style.display = 'inline-block';
+                } else {
+                    showMoreBtn.style.display = 'none';
                 }
             } else {
-                seeMoreButton.style.display = 'none';
+                buttonsContainer.style.display = 'none';
             }
             
             tbody.innerHTML = betsToShow.map(bet => {
@@ -1709,7 +1724,7 @@
                 parlayLegsDiv.innerHTML = '<div class="parlay-leg mb-2"><input type="text" class="form-control parlay-leg-input" placeholder="Sport/Event (e.g., NBA: Lakers ML)"></div>';
                 document.getElementById('remove-parlay-leg').style.display = 'none';
                 
-                loadDashboard();
+                loadDashboard(true); // Skip skeleton
             } catch (error) {
                 console.error('Error saving bet:', error);
                 alert('Error saving bet: ' + error.message);
@@ -1747,7 +1762,7 @@
                 await storage.set(betId, JSON.stringify(bet));
                 
                 alert(`Bet marked as ${result}!`);
-                loadDashboard();
+                loadDashboard(true); // Skip skeleton
             } catch (error) {
                 console.error('Error resolving bet:', error);
                 alert('Error resolving bet');
@@ -1761,7 +1776,7 @@
             try {
                 await storage.delete(betId);
                 alert('Bet deleted successfully!');
-                loadDashboard();
+                loadDashboard(true); // Skip skeleton
             } catch (error) {
                 console.error('Error deleting bet:', error);
                 alert('Error deleting bet');
@@ -1951,7 +1966,7 @@
                 await storage.set(betId, JSON.stringify(bet));
                 alert('Bet updated successfully!');
                 closeEditModal();
-                loadDashboard();
+                loadDashboard(true); // Skip skeleton
             } catch (error) {
                 console.error('Error updating bet:', error);
                 alert('Error updating bet: ' + error.message);
@@ -2617,4 +2632,3 @@
     </script>
 </body>
 </html>
-" " 
