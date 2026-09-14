@@ -1,0 +1,10 @@
+# Firebase Admin SDK service account keys — never commit these
+service-account*.json
+*-firebase-adminsdk-*.json
+
+# Node
+node_modules/
+package-lock.json
+
+# Editor/OS
+.DS_Store
