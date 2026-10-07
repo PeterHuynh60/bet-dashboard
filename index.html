@@ -22,7 +22,10 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="B.E.T. Dashboard">
-    <meta name="theme-color" content="#55c278">
+    <meta name="theme-color" content="#48a869">
+    <!-- Shared huynh.place design system (fonts, colors, header) + light/dark theme shared across *.huynh.place -->
+    <link href="https://huynh.place/shared/huynh-ui.css" rel="stylesheet">
+    <script src="https://huynh.place/shared/huynh-ui.js"></script>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
@@ -474,19 +477,66 @@
             margin-bottom: 1.5rem !important;
         }
     </style>
+    <style id="hu-overrides">
+        /* ---- huynh.place shared design system (https://huynh.place/shared/huynh-ui.css) ----
+           Restyles the existing Bootstrap layout with the shared tokens, so B.E.T. matches the other
+           apps and follows the shared light/dark theme. */
+        body { padding-top: 0; background-color: var(--hu-bg); color: var(--hu-text); font-family: var(--hu-font-body); }
+        .container-fluid { padding: 1.25rem 16px 2.5rem; }
+        .stats-row, .card, .bet-table, .form-section {
+            background: var(--hu-surface); border: 1px solid var(--hu-border); border-radius: var(--hu-radius);
+            box-shadow: var(--hu-shadow); color: var(--hu-text);
+        }
+        .card-body { color: var(--hu-text); }
+        .stat-item h6 { color: var(--hu-muted); font-family: var(--hu-font-head); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; }
+        .stat-item h2, .card-title, .bet-table h4, .form-section h4 { font-family: var(--hu-font-head); color: var(--hu-text); }
+        .table { color: var(--hu-text); }
+        .table thead th {
+            background: var(--hu-surface-2); color: var(--hu-muted); border-color: var(--hu-border);
+            font-family: var(--hu-font-head); font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+        }
+        .table td, .table th { border-color: var(--hu-border); }
+        .table-hover tbody tr:hover { background: var(--hu-accent-soft); color: var(--hu-text); }
+        .btn-primary { background: var(--hu-accent); border-color: var(--hu-accent); color: var(--hu-on-accent); border-radius: 999px; font-weight: 700; }
+        .btn-primary:hover, .btn-primary:focus { background: var(--hu-accent-dark); border-color: var(--hu-accent-dark); color: var(--hu-on-accent); }
+        .btn-secondary, .btn-success, .btn-danger { border-radius: 999px; font-weight: 700; }
+        label, .form-check-label { color: var(--hu-text); }
+        .form-control { background: var(--hu-surface); color: var(--hu-text); border-color: var(--hu-border); }
+        .form-control:focus { background: var(--hu-surface); color: var(--hu-text); border-color: var(--hu-accent); box-shadow: 0 0 0 0.2rem rgba(85, 194, 120, 0.25); }
+        .form-control::placeholder { color: var(--hu-muted); }
+        .skeleton { background: linear-gradient(90deg, var(--hu-surface-2) 25%, var(--hu-border) 50%, var(--hu-surface-2) 75%); background-size: 200% 100%; }
+        .profit-positive { color: var(--hu-green) !important; }
+        .profit-negative { color: var(--hu-red) !important; }
+        #login-modal > div { background: var(--hu-surface) !important; color: var(--hu-text); border: 1px solid var(--hu-border); border-radius: var(--hu-radius) !important; }
+        #login-modal > div > button { color: var(--hu-muted) !important; }
+        #user-info { align-items: center; gap: 0.5rem; }
+        #user-name { font-size: 0.8rem; opacity: 0.9; max-width: 14rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        @media (max-width: 575px) { #user-name { display: none; } }
+    </style>
 </head>
 <body>
-     <a href="https://huynh.place" class="btn btn-dark back-link">Main</a>
-    
-    <!-- Authentication UI -->
-    <button id="sign-in-btn" class="auth-button">Sign In</button>
-    <div id="user-info" class="user-info">
-        <img id="user-photo" src="icon-192.png" alt="User" onclick="toggleUserDropdown()">
-        <div id="user-dropdown" class="user-dropdown">
-            <div class="user-dropdown-name" id="user-name"></div>
-            <button id="sign-out-btn">Sign Out</button>
+    <!-- Shared huynh.place app header (same bar as Home Search HQ, Gym and Video Reviews) -->
+    <header class="hu-shell">
+        <div class="hu-shell-inner">
+            <a class="hu-home" href="https://huynh.place">&larr; huynh.place</a>
+            <div class="hu-app-id">
+                <span class="hu-app-icon" aria-hidden="true">🎲</span>
+                <div>
+                    <h1 class="hu-app-name">B.E.T.</h1>
+                    <span class="hu-app-sub">Binary Expected-Value Tool &middot; track betting performance and earnings</span>
+                </div>
+            </div>
+            <div class="hu-shell-actions">
+                <button id="sign-in-btn" class="hu-btn hu-btn-small" type="button">Sign In</button>
+                <div id="user-info" style="display: none;">
+                    <span id="user-name"></span>
+                    <button id="sign-out-btn" class="hu-btn hu-btn-small" type="button">Sign Out</button>
+                    <span id="user-dropdown" hidden></span><!-- placeholder: the old avatar-menu click handler still looks it up -->
+                </div>
+                <button class="hu-theme-toggle" type="button" data-hu-theme-toggle aria-label="Toggle dark mode" title="Toggle dark mode"><span class="hu-icon-light">🌙</span><span class="hu-icon-dark">☀️</span></button>
+            </div>
         </div>
-    </div>
+    </header>
 
     <div id="login-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; overflow-y: auto;">
         <div style="background: white; max-width: 360px; margin: 80px auto; padding: 2rem; border-radius: 8px; position: relative;">
@@ -507,11 +557,7 @@
     </div>
     
     <div class="container-fluid">
-        <div class="dashboard-header">
-            <h1 class="mb-2">Binary Expected-Value Tool (B.E.T.)</h1>
-            <p class="mb-0">Track your betting performance and earnings</p>
-        </div>
-        
+
         <!-- Loading Skeleton (shown while data loads) -->
         <div id="loading-skeleton" class="loading-container">
             <!-- Skeleton Stats -->
@@ -2638,6 +2684,20 @@
                     .catch(err => console.log('ServiceWorker registration failed:', err));
             });
         }
+    </script>
+    <script>
+        // Chart.js colors from the shared theme tokens; re-applied when the theme changes.
+        (function () {
+            function applyChartTheme() {
+                if (!window.Chart) return;
+                var cs = getComputedStyle(document.documentElement);
+                Chart.defaults.color = cs.getPropertyValue("--hu-muted").trim() || "#6c757d";
+                Chart.defaults.borderColor = cs.getPropertyValue("--hu-border").trim() || "#dee2e6";
+                Object.values(Chart.instances || {}).forEach(function (c) { c.update(); });
+            }
+            applyChartTheme();
+            document.addEventListener("hu-themechange", applyChartTheme);
+        })();
     </script>
 </body>
 </html>

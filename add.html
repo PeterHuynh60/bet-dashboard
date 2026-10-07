@@ -9,7 +9,10 @@
     <!-- PWA Meta Tags -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="theme-color" content="#1a1a1a">
+    <meta name="theme-color" content="#48a869">
+    <!-- Shared huynh.place design system (fonts, colors, header) + light/dark theme shared across *.huynh.place -->
+    <link href="https://huynh.place/shared/huynh-ui.css" rel="stylesheet">
+    <script src="https://huynh.place/shared/huynh-ui.js"></script>
     <link rel="manifest" href="add-manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
     <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png">
@@ -21,16 +24,18 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
     
     <style>
+        /* Colors come from the shared huynh.place design tokens (huynh-ui.css), so Quick Add follows the
+           same look and the same light/dark theme as the other apps. */
         :root {
-            --bg-dark: #0a0a0a;
-            --bg-card: #1a1a1a;
-            --bg-input: #252525;
-            --text-primary: #ffffff;
-            --text-secondary: #a0a0a0;
-            --accent-green: #00ff88;
-            --accent-red: #ff4444;
-            --accent-blue: #4488ff;
-            --border: #333333;
+            --bg-dark: var(--hu-bg);
+            --bg-card: var(--hu-surface);
+            --bg-input: var(--hu-surface-2);
+            --text-primary: var(--hu-text);
+            --text-secondary: var(--hu-muted);
+            --accent-green: var(--hu-accent);
+            --accent-red: var(--hu-red);
+            --accent-blue: var(--hu-blue);
+            --border: var(--hu-border);
         }
         
         * {
@@ -40,7 +45,7 @@
         }
         
         body {
-            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: var(--hu-font-body);
             background: var(--bg-dark);
             color: var(--text-primary);
             line-height: 1.6;
@@ -447,9 +452,26 @@
             font-size: 0.875rem;
             font-weight: 500;
         }
+            h1, h2, h3 { font-family: var(--hu-font-head); }
     </style>
 </head>
 <body>
+    <!-- Shared huynh.place app header -->
+    <header class="hu-shell">
+        <div class="hu-shell-inner">
+            <a class="hu-home" href="./">&larr; B.E.T.</a>
+            <div class="hu-app-id">
+                <span class="hu-app-icon" aria-hidden="true">🎲</span>
+                <div>
+                    <h1 class="hu-app-name">Quick Add</h1>
+                    <span class="hu-app-sub">Log a bet or transaction</span>
+                </div>
+            </div>
+            <div class="hu-shell-actions">
+                <button class="hu-theme-toggle" type="button" data-hu-theme-toggle aria-label="Toggle dark mode" title="Toggle dark mode"><span class="hu-icon-light">🌙</span><span class="hu-icon-dark">☀️</span></button>
+            </div>
+        </div>
+    </header>
     <div class="container">
         <!-- Sign In Prompt -->
         <div id="signin-prompt" class="signin-prompt hidden">
@@ -466,10 +488,6 @@
         <div id="main-app" class="hidden">
             <!-- Header -->
             <div class="header">
-                <div>
-                    <h1>Quick Add</h1>
-                    <div class="subtitle">B.E.T. Dashboard</div>
-                </div>
                 <div class="user-info">
                     <span class="user-name" id="user-name"></span>
                     <button class="btn-signout" id="signout-btn">Sign Out</button>

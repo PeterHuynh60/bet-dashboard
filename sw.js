@@ -1,4 +1,4 @@
-const CACHE_NAME = 'bet-dashboard-v2';
+const CACHE_NAME = 'bet-dashboard-v3';
 const urlsToCache = [
   './',
   './index.html',
@@ -23,8 +23,25 @@ self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-// Fetch event - serve from cache when possible
+// Fetch event. Pages (HTML) are network-first, so updates show up right away, with the cached
+// copy as the offline fallback; everything else is cache-first.
 self.addEventListener('fetch', event => {
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          const copy = response.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+          return response;
+        })
+        .catch(() =>
+          caches.match(event.request).then(cached =>
+            cached || new Response('Offline - please check your connection', { headers: { 'Content-Type': 'text/plain' } })
+          )
+        )
+    );
+    return;
+  }
   event.respondWith(
     caches.match(event.request)
       .then(response => {
